@@ -53,7 +53,7 @@ class Show:
         val += __align__("URL", self.url)
         val += __align__("Status", self.status)
         if hasattr(self, "prev_ep"):
-            if __is_new__():
+            if self.__is_new__():
                 val += __center__("!! NEW EPISODE!!")
             val += __subheading__("Previous episode")
             val += unicode(self.prev_ep)
