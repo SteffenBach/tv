@@ -166,6 +166,10 @@ def __progress__(name):
 if __name__ == "__main__":
     import sys
 
+    # Create configuration folder if missing
+    if not os.path.exists(CONF_DIR):
+        os.makedirs(CONF_DIR)
+
     # Check if already running
     if os.path.exists(FILE_RUNNING):
         print("Another instance is already running")
