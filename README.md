@@ -19,8 +19,8 @@ using the [TVRage](http://tvrage.com/) API.
 ├─ Next episode ──────────────────────────────────────────────────┤
 │ Number:                                                   05x01 │
 │ Title:                                      Season 5, Episode 1 │
-│ Air Date:                                            2015-04-28 │
-│ Days remaining:                                             288 │
+│ Air Date:                                               2015-04 │
+│ Days remaining:                                             N/A │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─ Sherlock ──────────────────────────────────────────────────────┐
