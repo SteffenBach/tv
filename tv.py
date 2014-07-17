@@ -72,18 +72,23 @@ class Episode:
         if len(vals) == 3:
             self.date = datetime.date(int(vals[2]), MONTHS[vals[0]], int(vals[1]))
         elif len(vals) == 2:
-            self.date = datetime.date(int(vals[1]), MONTHS[vals[0]], 28)
+            self.date = "%s-%02d" % (vals[1], MONTHS[vals[0]])
         else:
-            self.date = datetime.date(int(vals[0]), 6, 28)
+            self.date = vals[0]
 
     def __str__(self):
         return unicode(self).encode('utf-8')
 
     def __unicode__(self):
+        if isinstance(self.date, datetime.date):
+            days = abs((self.date - datetime.date.today()).days)
+        else:
+            days = "N/A"
+
         return __align__("Number", self.number) \
                 + __align__("Title", self.title) \
                 + __align__("Air Date", self.date) \
-                + __align__(self.prefix, abs((self.date - datetime.date.today()).days))
+                + __align__(self.prefix, days)
 
 def __fetch__(path):
     url = "http://services.tvrage.com/tools/quickinfo.php?show=%s" % path
