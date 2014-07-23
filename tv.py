@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import datetime
-import os
+import datetime, os, sys
 import urllib.request, urllib.parse, urllib.error
 
 ATTEMPTS = 3
@@ -150,8 +149,6 @@ def __progress__(name):
     return __fetch_and_parse__(name)
 
 if __name__ == "__main__":
-    import sys
-
     # Create configuration folder if missing
     if not os.path.exists(CONF_DIR):
         os.makedirs(CONF_DIR)
