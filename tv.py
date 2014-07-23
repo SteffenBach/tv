@@ -126,18 +126,6 @@ def __parse_map__(entries):
         parsed = entries["Next Episode"].split("^")
         entry.next_ep = Episode(parsed[0], parsed[1], parsed[2], "Days remaining")
     if "Status" in entries: entry.status = entries["Status"]
-#    if entries.has_key("Show ID"): entry.show_id = int(entries["Show ID"])
-#    if entries.has_key("Premiered"): entry.premiered = entries["Premiered"]
-#    if entries.has_key("Started"): entry.started = entries["Started"]
-#    if entries.has_key("Ended"): entry.ended = entries["Ended"]
-#    if entries.has_key("Country"): entry.country = entries["Country"]
-#    if entries.has_key("RFC3339"): entry.rfc3339 = entries["RFC3339"]
-#    if entries.has_key("GMT+0 NODST"): entry.gmt0 = entries["GMT+0 NODST"]
-#    if entries.has_key("Classification"): entry.classfication = entries["Classification"]
-#    if entries.has_key("Genres"): entry.genres = entries["Genres"].split(" | ")
-#    if entries.has_key("Network"): entry.network = entries["Network"]
-#    if entries.has_key("Airtime"): entry.airtime = entries["Airtime"]
-#    if entries.has_key("Runtime"): entry.runtime = entries["Runtime"]
 
     # load timestamp from when this show was last fetched
     if entry.name in CACHE:
