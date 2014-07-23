@@ -1,6 +1,6 @@
 # TV
 
-A small Python 2.7 command-line tool for checking the air date of TV shows
+A small Python 3 command-line tool for checking the air date of TV shows
 using the [TVRage](http://tvrage.com/) API.
 
 

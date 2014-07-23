@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-from contextlib import closing
 import datetime
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 ATTEMPTS = 3
 CACHE = {}
@@ -12,32 +10,32 @@ COLS = 65
 CONF_DIR = os.environ["HOME"] + "/.config/tv/"
 FILE_RUNNING = CONF_DIR + "running"
 FILE_SHOWS = CONF_DIR + "shows"
-FILE_TIMESTAMPS = CONF_DIR + "ts"
+FILE_TIMESTAMPS = CONF_DIR + "timestamp_cache"
 MONTHS = {  'Jan': 1,  'Feb': 2,  'Mar': 3,
             'Apr': 4,  'May': 5,  'Jun': 6,
             'Jul': 7,  'Aug': 8,  'Sep': 9,
             'Oct': 10, 'Nov': 11, 'Dec': 12}
 
 def __align__(head, val):
-    return (u"│ %s:%" + str(COLS - len(head) - 3) + u"s │\n") % (head, val)
+    return ("│ %s:%" + str(COLS - len(head) - 3) + "s │\n") % (head, val)
 
 def __end__():
-    return u"└" + u"─"*COLS + u"┘\n"
+    return "└" + "─"*COLS + "┘\n"
 
 def __heading__(title):
-    return u"┌─ " + title + " " + u"─"*(COLS - 3 -len(title)) + u"┐\n"
+    return "┌─ " + title + " " + "─"*(COLS - 3 -len(title)) + "┐\n"
 
 def __subheading__(title):
-    return u"├─ " + title + " " + u"─"*(COLS - 3 -len(title)) + u"┤\n"
+    return "├─ " + title + " " + "─"*(COLS - 3 -len(title)) + "┤\n"
 
 def __center__(value):
-    return u"│ " + value.center(COLS - 2) + u" │\n"
+    return "│ " + value.center(COLS - 2) + " │\n"
 
 class Show:
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, Show):
-            return cmp(self.name, other.name)
-        elif isinstance(other, basestring):
+            return (self.name < other.name)
+        elif isinstance(other, str):
             return 1
         else:
             return -1
@@ -46,9 +44,6 @@ class Show:
         return hasattr(self, "prev") and self.prev and self.prev_ep.date >= self.prev.date()
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
         val = __heading__(self.name)
         val += __align__("URL", self.url)
         val += __align__("Status", self.status)
@@ -56,10 +51,10 @@ class Show:
             if self.__is_new__():
                 val += __center__("!! NEW EPISODE!!")
             val += __subheading__("Previous episode")
-            val += unicode(self.prev_ep)
+            val += str(self.prev_ep)
         if hasattr(self, "next_ep"):
             val += __subheading__("Next episode")
-            val += unicode(self.next_ep)
+            val += str(self.next_ep)
         val += __end__()
         return val
 
@@ -77,9 +72,6 @@ class Episode:
             self.date = vals[0]
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
         if isinstance(self.date, datetime.date):
             days = abs((self.date - datetime.date.today()).days)
         else:
@@ -91,11 +83,11 @@ class Episode:
                 + __align__(self.prefix, days)
 
 def __fetch__(path):
-    url = "http://services.tvrage.com/tools/quickinfo.php?show=%s" % path
-    for i in xrange(1, ATTEMPTS + 1):
+    url = "http://services.tvrage.com/tools/quickinfo.php?%s" % urllib.parse.urlencode({'show': path})
+    for i in range(1, ATTEMPTS + 1):
         try:
-            with closing(urllib.urlopen(url)) as f:
-                lines = [line.strip() for line in f.readlines()]
+            with urllib.request.urlopen(url) as f:
+                lines = [line.decode('utf-8').strip() for line in f.readlines()]
                 break
         except:
             if i == ATTEMPTS:
@@ -111,7 +103,7 @@ def __fetch__(path):
 def __fetch_and_parse__(path):
     lines = __fetch__(path)
 
-    if isinstance(lines, basestring):
+    if isinstance(lines, str):
         return lines
 
     parsed = {}
@@ -125,15 +117,15 @@ def __fetch_and_parse__(path):
 
 def __parse_map__(entries):
     entry = Show()
-    if entries.has_key("Show Name"): entry.name = entries["Show Name"]
-    if entries.has_key("Show URL"): entry.url = entries["Show URL"]
-    if entries.has_key("Latest Episode"):
+    if "Show Name" in entries: entry.name = entries["Show Name"]
+    if "Show URL" in entries: entry.url = entries["Show URL"]
+    if "Latest Episode" in entries:
         parsed = entries["Latest Episode"].split("^")
-        entry.prev_ep = Episode(parsed[0], unicode(parsed[1], "UTF-8"), parsed[2], "Days since")
-    if entries.has_key("Next Episode"):
+        entry.prev_ep = Episode(parsed[0], parsed[1], parsed[2], "Days since")
+    if "Next Episode" in entries:
         parsed = entries["Next Episode"].split("^")
-        entry.next_ep = Episode(parsed[0], unicode(parsed[1], "UTF-8"), parsed[2], "Days remaining")
-    if entries.has_key("Status"): entry.status = entries["Status"]
+        entry.next_ep = Episode(parsed[0], parsed[1], parsed[2], "Days remaining")
+    if "Status" in entries: entry.status = entries["Status"]
 #    if entries.has_key("Show ID"): entry.show_id = int(entries["Show ID"])
 #    if entries.has_key("Premiered"): entry.premiered = entries["Premiered"]
 #    if entries.has_key("Started"): entry.started = entries["Started"]
@@ -148,10 +140,11 @@ def __parse_map__(entries):
 #    if entries.has_key("Runtime"): entry.runtime = entries["Runtime"]
 
     # load timestamp from when this show was last fetched
-    if CACHE.has_key(entry.name):
-        entry.prev = CACHE[entry.name]
-        # Update time stamps for fetched shows
-        CACHE[entry.name] = datetime.datetime.now()
+    if entry.name in CACHE:
+        entry.prev = datetime.datetime.fromtimestamp(CACHE[entry.name])
+
+    # Update time stamps for fetched shows
+    CACHE[entry.name] = datetime.datetime.now().timestamp()
 
     return entry
 
@@ -181,14 +174,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        import cPickle
+        import json
         # Mark as running
         open(FILE_RUNNING, 'w').close()
 
         # Load time stamps
         if os.path.exists(FILE_TIMESTAMPS):
             with open(FILE_TIMESTAMPS) as h:
-                CACHE = cPickle.load(h)
+                CACHE = json.load(h)
 
         # Load show names, either from command line or configuration file
         names = []
@@ -198,23 +191,23 @@ if __name__ == "__main__":
             try:
                 names = __read_config__()
             except:
-                print("No arguments given and '%s' does not exist!" % FILE_SHOWS)
+                print(("No arguments given and '%s' does not exist!" % FILE_SHOWS))
 
         # Actually fetch show info
         if len(names) > 0:
             shows = [__progress__(name) for name in names]
             shows.sort()
 
-            print "\n".join(str(show) for show in shows),
-            
+            print("\n".join(str(show) for show in shows), end='')
+
             # Store time stamps
             with open(FILE_TIMESTAMPS, 'w') as h:
-                cPickle.dump(CACHE, h)
+                json.dump(CACHE, h, indent=2)
     except:
-        print '>>> traceback <<<'
+        print('>>> traceback <<<')
         import traceback
         traceback.print_exc()
-        print '>>> end of traceback <<<'
+        print('>>> end of traceback <<<')
 
     # Removing running indicator
     os.remove(FILE_RUNNING)
