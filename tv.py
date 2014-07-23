@@ -142,10 +142,8 @@ def __read_config__():
     return [line for line in lines if len(line) > 0 and not '#' in line]
 
 def __progress__(name):
-    progress = "\rFetching info for %s" % name.upper()
-    sys.stdout.write(progress)
-    sys.stdout.flush()
-    sys.stdout.write("\r" + " "*(len(progress) + 3) + "\r")
+    progress = "Fetching info for {:<%d}" % COLS
+    print(progress.format(name.upper()), end='\r')
     return __fetch_and_parse__(name)
 
 if __name__ == "__main__":
