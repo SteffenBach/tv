@@ -30,14 +30,13 @@ def __subheading__(title):
 def __center__(value):
     return "│ " + value.center(COLS - 2) + " │\n"
 
+
 class Show:
     def __lt__(self, other):
         if isinstance(other, Show):
             return (self.name < other.name)
-        elif isinstance(other, str):
-            return 1
         else:
-            return -1
+            return False
         
     def __is_new__(self):
         return hasattr(self, "prev") and self.prev and self.prev_ep.date >= self.prev.date()
@@ -179,9 +178,15 @@ if __name__ == "__main__":
         # Actually fetch show info
         if len(names) > 0:
             shows = [__progress__(name) for name in names]
+
+            errors = [error for error in shows if isinstance(error, str)]
+            errors.sort()
+
+            shows = [show for show in shows if isinstance(show, Show)]
             shows.sort()
 
-            print("\n".join(str(show) for show in shows), end='')
+            print(" " * COLS, end='\r')
+            print("\n".join(str(show) for show in shows + errors), end='')
 
             # Store time stamps
             with open(FILE_TIMESTAMPS, 'w') as h:
